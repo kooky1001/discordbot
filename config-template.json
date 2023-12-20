@@ -1,0 +1,6 @@
+{
+	"token" : "discord bot tok",
+    "clientId" : "discord clientId",
+    "guildId" : "discord guildId",
+    "weather" : "www.data.go.kr weather token"
+}
