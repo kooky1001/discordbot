@@ -5,17 +5,18 @@ const { SlashCommandBuilder } = require('discord.js');
 
 /* 날씨 data를 가공 */
 function returnTenkiMsg (json) {
-    //console.log("data: "+data);
     let denki; // 강수형태
     let ondo; // 기온
     let cousui; // 강수량
     let osora; // 하늘상태
     let naiyo; //내용정리
-    let obj = JSON.parse(json);   
-    let data = obj.response.body["items"].item;
+    // let obj = JSON.parse(json);   
+    // let data = obj.response.body["items"].item;
+    let data = json.response.body["items"].item;
+
 
     for(var i = 0; i < 10; i++){
-        //onsole.log("카테고리: "+data[i].category);
+        // console.log("카테고리: "+data[i].category);
         if( data[i].category == "TMP" ){ // 기온
             ondo = data[i].fcstValue;
             //console.log("온도: " +ondo);
@@ -58,8 +59,9 @@ function returnTenkiMsg (json) {
 }
 
 /* 기상청 api 호출 */
-function returnTenki(){
+function returnTenki(location){
     return new Promise((resolve, reject) => {    
+        console.log(location);
         var today = new Date();
         var year = today.getFullYear().toString();
         var month = today.getMonth()+1;
@@ -125,25 +127,16 @@ function returnTenki(){
             queryParams += '&' + encodeURIComponent('base_time') + '=' + encodeURIComponent(hours); /* */
             queryParams += '&' + encodeURIComponent('nx') + '=' + encodeURIComponent('61'); /* */
             queryParams += '&' + encodeURIComponent('ny') + '=' + encodeURIComponent('125'); /* */
-            //console.log(url + queryParams);    
+            // console.log(url + queryParams);    
 
-        http.get(url + queryParams, res => {
-            let body = [];
-            // console.log('Status Code:', res.statusCode);
-
-            res.on('data', chunk => {
-                body.push(chunk);
-            });
-
-            res.on('end', () => {
-                body = Buffer.concat(body).toString();
+        fetch(url + queryParams).then(res => res.json())
+            .then(body => {
                 const data = returnTenkiMsg(body);
                 resolve(data);
+            }).catch(err => {
+                console.log('Error: ', err.message);
+                reject(err);
             });
-        }).on('error', err => {
-            console.log('Error: ', err.message);
-            reject(err);
-        });
     });
    
 }
@@ -157,11 +150,13 @@ module.exports = {
                 .setDescription('날씨를 알고싶은 지역을 입력합니다.')
         ),
 	async execute(interaction) {
-        console.log(interaction.options.get('지역').value);
-        await returnTenki().then(body => {
+        let location = null;
+        if (interaction.options.get('지역')) location = interaction.options.get('지역').value;
+        await returnTenki(location).then(body => {
             interaction.reply(body);
         })
         .catch(error => {
+            console.log(error);
             interaction.reply("❌날씨 검색 중 오류가 발생하였습니다.🙃❌");
         });
 	},

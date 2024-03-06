@@ -1,21 +1,10 @@
-const https = require('node:https');
-const http = require('node:http');
+const {KakaoAK} = require('./config.json');
 
-// http.get('https://extreme-ip-lookup.com/json', res => {
-//     let body = [];
+let url = "https://dapi.kakao.com/v2/local/search/address.json?query=";
+let address = "일산"
+let headers = {headers : {"Authorization" : `KakaoAK ${KakaoAK}`}}
 
-//     res.on('data', chunk => {
-//         body.push(chunk);
-//     });
-
-//     res.on('end', () => {
-//         body = Buffer.concat(body).toString();
-//         console.log(body);
-//     });
-// }).on('error', err => {
-//     console.log('Error: ', err.message);
-// });
-
-http.get('http://www.ipaddress.my', (req, res) => {
-    console.log(req.ip);
-})
+fetch(`${url}${address}`, headers)
+  .then(res => res.json())
+  .then(data => console.log(data.documents))
+  .catch(err => console.log(err));
