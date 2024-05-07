@@ -64,13 +64,14 @@ function getWeatherMessage(json, name) {
 function getWeather(region) {
     return new Promise(async (resolve, reject) => {
         let gps;
-        await getGPS(region).then(data => {
-            gps = data;
-        }).catch(error => {
-            console.log('처음')
-            console.log(error);
+        try {
+            await getGPS(region).then(data => {
+                gps = data;
+            });
+        } catch (error) {
             reject(error);
-        });
+            return;
+        }
 
         if (!gps.name) {
             return;
@@ -89,7 +90,7 @@ function getWeather(region) {
         queryParams += `&${encodeURIComponent('base_time')}=${encodeURIComponent(today.hours)}`; /* */
         queryParams += `&${encodeURIComponent('nx')}=${encodeURIComponent(gps.x)}` /* */
         queryParams += `&${encodeURIComponent('ny')}=${encodeURIComponent(gps.y)}`; /* */
-        console.log(url + queryParams);
+        // console.log(url + queryParams);
 
         fetch(url + queryParams).then(res => res.json())
             .then(body => {
@@ -274,9 +275,10 @@ module.exports = {
             interaction.reply(body);
         })
             .catch(error => {
-                console.log('마지막')
                 console.log(error);
-                interaction.reply("❌날씨 검색 중 오류가 발생하였습니다.🙃❌");
+                let errMsg = '❌날씨 검색 중 오류가 발생하였습니다.🙃❌';
+                errMsg += `\n ${error}`;
+                interaction.reply(errMsg);
             });
     },
 };
